@@ -1,0 +1,31 @@
+openapi: 3.0.0
+info:
+  title: ZenithRetail
+  version: 1.0.0
+paths:
+  /products/{productId}:
+    get:
+      summary: Get product details by ID
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        price: { type: number, format: double }
+        imageUrl: { type: string }

@@ -1,0 +1,8 @@
+targets:
+  $default:
+    builders:
+      openapi_generator:
+        options:
+          input: api/schema.yaml
+          generator: dio
+          output_dir: lib/src/shared/api/generated
