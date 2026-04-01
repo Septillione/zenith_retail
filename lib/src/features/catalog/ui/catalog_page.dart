@@ -47,6 +47,22 @@ class CatalogPage extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            builder: (context) => _AIRecommendationsSheet(products: products),
+          );
+        },
+        backgroundColor: Colors.black87,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.auto_awesome),
+        label: const Text('ИИ-подбор',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -64,10 +80,9 @@ class CatalogPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4)),
               ],
             ),
             child: Column(
@@ -81,15 +96,12 @@ class CatalogPage extends StatelessWidget {
                       product.imageUrl,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey.shade200,
-                          child: const Center(
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey.shade200,
+                        child: const Center(
                             child: Icon(Icons.image_not_supported,
-                                size: 50, color: Colors.grey),
-                          ),
-                        );
-                      },
+                                size: 50, color: Colors.grey)),
+                      ),
                     ),
                   ),
                 ),
@@ -98,22 +110,17 @@ class CatalogPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        product.name,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text(product.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 4),
-                      Text(
-                        '\$${product.price.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
+                      Text('\$${product.price.toStringAsFixed(0)}',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16)),
                       const SizedBox(height: 8),
                       SizedBox(
                         width: double.infinity,
@@ -125,17 +132,14 @@ class CatalogPage extends StatelessWidget {
                             ScaffoldMessenger.of(context).clearSnackBars();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${product.name} в корзине'),
-                                behavior: SnackBarBehavior.floating,
-                                duration: const Duration(seconds: 1),
-                              ),
+                                  content: Text('${product.name} в корзине'),
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 1)),
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8))),
                           child: const Text('Купить'),
                         ),
                       ),
@@ -147,6 +151,107 @@ class CatalogPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _AIRecommendationsSheet extends StatefulWidget {
+  final List<Product> products;
+  const _AIRecommendationsSheet({required this.products});
+
+  @override
+  State<_AIRecommendationsSheet> createState() =>
+      _AIRecommendationsSheetState();
+}
+
+class _AIRecommendationsSheetState extends State<_AIRecommendationsSheet> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _isLoading = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final recommendedProduct = widget.products[2];
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      height: 300,
+      width: double.infinity,
+      child: _isLoading
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(color: Colors.black87),
+                const SizedBox(height: 24),
+                Text('✨ ИИ анализирует тренды...',
+                    style:
+                        TextStyle(fontSize: 16, color: Colors.grey.shade700)),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.auto_awesome, color: Colors.amber),
+                    const SizedBox(width: 8),
+                    Text('Выбор ИИ для вас',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                    'Нейросеть проанализировала ваши действия и считает, что этот товар идеально вам подойдет:',
+                    style: TextStyle(color: Colors.grey.shade700)),
+                const SizedBox(height: 16),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      recommendedProduct.imageUrl,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                          width: 50,
+                          height: 50,
+                          color: Colors.grey,
+                          child: const Icon(Icons.error)),
+                    ),
+                  ),
+                  title: Text(recommendedProduct.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('\$${recommendedProduct.price}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.black)),
+                  trailing: ElevatedButton(
+                    onPressed: () {
+                      context
+                          .read<CartBloc>()
+                          .add(CartEvent.itemAdded(recommendedProduct));
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                              Text('Отличный выбор! Добавлено в корзину.')));
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black87,
+                        foregroundColor: Colors.white),
+                    child: const Text('В корзину'),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
